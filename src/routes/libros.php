@@ -191,7 +191,7 @@ $app->put('/api/libros/{id}', function(Request $request, Response $response){
 
 
 // Return a response with a 401 not allowed error.
-function loginError(Response $response, String $errorText){
+function loginError(Response $response, $errorText){
   $newResponse = $response->withStatus(401);
   $body = $response->getBody();
   $body->write('{"status": "login error","message": "'.$errorText.'"}');

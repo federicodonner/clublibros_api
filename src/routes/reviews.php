@@ -135,7 +135,7 @@ $app->put('/api/reviews/{id}', function(Request $request, Response $response){
         $estrellas = $request->getParam('estrellas');
         $texto = $request->getParam('texto');
 
-        $sql = "UPDATE libros SET
+        $sql = "UPDATE reviews SET
         id_usuario = :id_usuario,
         id_libro = :id_libro,
         estrellas = :estrellas,
@@ -172,13 +172,3 @@ $app->put('/api/reviews/{id}', function(Request $request, Response $response){
     return loginError($response, 'Error de encabezado HTTP');
   }
 });
-
-
-// Return a response with a 401 not allowed error.
-function loginError(Response $response, String $errorText){
-  $newResponse = $response->withStatus(401);
-  $body = $response->getBody();
-  $body->write('{"status": "login error","message": "'.$errorText.'"}');
-  $newResponse = $newResponse->withBody($body);
-  return $newResponse;
-}

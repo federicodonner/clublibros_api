@@ -5,7 +5,7 @@ class db{
   // Properties
   private $dbhost = 'localhost';
   private $dbuser = 'feder161_cladmin';
-  private $dbpass = 'feder161_cladmin';
+  private $dbpass = 'cladmin';
   private $dbname = 'feder161_clublibros';
 
   public function connect(){
