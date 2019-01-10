@@ -1,0 +1,6 @@
+{
+    "require": {
+      "phpmailer/phpmailer": "~6.0",      
+      "slim/slim": "^3.0"
+    }
+}
