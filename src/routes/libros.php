@@ -25,8 +25,17 @@ $app->get('/api/libros', function(Request $request, Response $response){
     $stmt = $db->query($sql);
     $libros = $stmt->fetchAll(PDO::FETCH_OBJ);
 
-    // Find the active rentals for each book
+    // Find the active owner and rentals for each book
     foreach($libros as $libro){
+
+      // Find the book owner, get the id and find it in the users table
+      $idUsuario = $libro->usr_dueno;
+      $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+      $stmt = $db->query($sql);
+      $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
+      // Store the owner's name in the book object
+      $libro->usr_dueno_nombre = $usuarios[0]->nombre;
+
       $idLibro = $libro->id;
       $sql = "SELECT * FROM alquileres WHERE id_libro = $idLibro AND activo = 1";
       $stmt = $db->query($sql);
@@ -85,6 +94,15 @@ $app->get('/api/libros/{id}', function(Request $request, Response $response){
     $sql = "SELECT * FROM alquileres WHERE id_libro = $idLibro";
     $stmt = $db->query($sql);
     $alquileres = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+    // Find the book owner, get the id and find it in the users table
+    $idUsuario = $libro->usr_dueno;
+    $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+    $stmt = $db->query($sql);
+    $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
+    // Store the owner's name in the book object
+    $libro->usr_dueno_nombre = $usuarios[0]->nombre;
+
     // If the book has active rentals, find the name of the user that has it
     if(count($alquileres)>0){
       // Goes through all the rentals to keep it general, each book should only have one active rental at a time
