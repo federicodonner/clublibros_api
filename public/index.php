@@ -22,6 +22,7 @@ require '../src/routes/usuarios.php';
 require '../src/routes/alquileres.php';
 require '../src/routes/mail.php';
 require '../src/routes/oauth.php';
+require '../src/routes/yo.php';
 
 $app->run();
 
