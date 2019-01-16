@@ -5,17 +5,21 @@ use \Psr\Http\Message\ResponseInterface as Response;
 // Get All books. For each book, find if it's rented and get the active rental information
 // For each active rental, find the name of the user that has it
 $app->get('/api/libros', function(Request $request, Response $response){
-  // // $params = $app->request()->getBody();
-  // if($request->getHeaders()['HTTP_AUTHORIZATION']){
-  // $access_token = $request->getHeaders()['HTTP_AUTHORIZATION'][0];
-  // $access_token = explode(" ", $access_token)[1];
-  // Find the access token, if a user is returned, find the productos
-  // if(!empty($access_token)){
-  // $user_found = verifyToken($access_token);
-  // if(!empty($user_found)){
+  // Verify the access token to validate the user selection
+  if ($request->getHeaders()['HTTP_AUTHORIZATION']) {
+      $access_token = $request->getHeaders()['HTTP_AUTHORIZATION'][0];
+      $access_token = explode(" ", $access_token)[1];
+      // Find the access token, if a user is returned, post the products
+      if (!empty($access_token)) {
+          $user_found = verifyToken($access_token);
+          if (!empty($user_found)) {
+// The access token is necesary to identify the company of the active user and
+// only return the books from that company
 
-  // Select all books
-  $sql = "SELECT * FROM libros";
+// Find the user based on the token
+  $idUsuario = $user_found[0]->user_id;
+  $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+
   try{
     // Get db object
     $db = new db();
@@ -23,7 +27,15 @@ $app->get('/api/libros', function(Request $request, Response $response){
     $db = $db->connect();
 
     $stmt = $db->query($sql);
+    $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
+    $empresa = $usuarios[0]->empresa;
+
+    // Select all books
+    $sql = "SELECT * FROM libros";
+    $stmt = $db->query($sql);
     $libros = $stmt->fetchAll(PDO::FETCH_OBJ);
+// This array is returned to the user
+    $librosResponse = [];
 
     // Find the active owner and rentals for each book
     foreach($libros as $libro){
@@ -35,6 +47,7 @@ $app->get('/api/libros', function(Request $request, Response $response){
       $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
       // Store the owner's name in the book object
       $libro->usr_dueno_nombre = $usuarios[0]->nombre;
+      $libro->usr_dueno_empresa = $usuarios[0]->empresa;
 
       $idLibro = $libro->id;
       $sql = "SELECT * FROM alquileres WHERE id_libro = $idLibro AND activo = 1";
@@ -55,6 +68,11 @@ $app->get('/api/libros', function(Request $request, Response $response){
       }
       // Add the rental object to the book object in the array
       $libro->alquileres = $alquileres;
+      // Verify if the book belongs to the same company as the current user
+      if($libro->usr_dueno_empresa == $empresa){
+// If it does, push it into a new array that is returned
+        array_push($librosResponse, $libro);
+      }
     }
 
     // Reset all variables
@@ -64,13 +82,21 @@ $app->get('/api/libros', function(Request $request, Response $response){
     $idUsuario = null;
 
     // Add the books array into an object for response
-    $librosResponse = array('libros'=>$libros);
     $newResponse = $response->withJson($librosResponse);
     return $newResponse;
 
   }catch(PDOException $e){
     echo '{"error":{"text": '.$e->getMessage().'}}';
   }
+} else {
+    return loginError($response, 'Error de login, usuario no encontrado');
+}
+} else {
+return loginError($response, 'Error de login, falta access token');
+}
+} else {
+return loginError($response, 'Error de encabezado HTTP');
+}
 
 });
 
