@@ -5,10 +5,13 @@ use \Psr\Http\Message\ResponseInterface as Response;
 // Add product
 $app->post('/api/oauth', function(Request $request, Response $response){
 
+  $params = $request->getBody();
   $grant_type = $request->getParam('grant_type');
+  // $grant_type = json_decode($params)->grant_type;
 
   if($grant_type == 'password'){
     $username = $request->getParam('user');
+    // $username = json_decode($params)->user;
     //$pass = $request->getParam('pass');
 
     $sql = "SELECT * FROM usuarios WHERE nombre = '$username'";
@@ -27,7 +30,12 @@ $app->post('/api/oauth', function(Request $request, Response $response){
         //cambio el estatus del mensaje e incluyo el mensaje de error
         $newResponse = $response->withStatus(409);
         $body = $response->getBody();
-        $body->write('{"status": "error","message": "Nombre de usuario o password incorrecto"}');
+        $body->write('{
+          "status": "error",
+          "message": "Nombre de usuario o password incorrecto",
+          "usuario": "'.$username.'",
+          "grant_type": "'.$grant_type.'"
+        }');
         $newResponse = $newResponse->withBody($body);
         return $newResponse;
       }else{
@@ -55,7 +63,7 @@ $app->post('/api/oauth', function(Request $request, Response $response){
         // ->withHeader('Access-Control-Allow-Origin', '*')
         // ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
         // ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-        echo('{"status":"201", "token":"'.$access_token.'"}');
+        echo('{"status":"201", "token":"'.$access_token.'","grant_type":"'.$grant_type.'"}');
       }
 
     }catch(PDOException $e){
@@ -66,12 +74,12 @@ $app->post('/api/oauth', function(Request $request, Response $response){
 
   }else{
 
+    $newResponse = $response->withStatus(406);
+    $body = $response->getBody();
+    $body->write('{data: "incorrect grant_type", grant_type: '.$grant_type.', username: '.$username.', params: '.$params.', params.grant_type: '.$params->grant_type.'}');
+    $newResponse = $newResponse->withBody($body);
 
-
-    $data = array('data' => 'incorrect grant_type');
-    $newResponse = $response->withJson($data, 406);
-
-    echo($newResponse);
+    return $newResponse;
   }
   //
   // $email = $request->getParam('email');

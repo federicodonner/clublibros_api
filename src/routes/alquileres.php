@@ -90,7 +90,7 @@ $app->post('/api/alquileres', function(Request $request, Response $response){
 
           $newResponse = $response->withStatus(200);
           $body = $response->getBody();
-          $body->write('{"status": "success","message": "Alquiler agregado"');
+          $body->write('{"status": "success","message": "Alquiler agregado"}');
             $newResponse = $newResponse->withBody($body);
             return $newResponse;
 
