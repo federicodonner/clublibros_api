@@ -136,6 +136,8 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
         // Store the owner's name in the book object
         $libro->usr_dueno_nombre = $usuarios[0]->nombre;
 
+        $alquileresTerminados = array();
+
         // If the book has active rentals, find the name of the user that has it
         if (count($alquileres)>0) {
             // Goes through all the rentals to keep it general, each book should only have one active rental at a time
@@ -146,10 +148,19 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
                 $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
                 // Stores the user name inside the rental objetct
                 $alquiler->nombre = $usuarios[0]->nombre;
+                // If the current rental is still active, separate it
+                // This makes the UI much easier
+                if ($alquiler->activo) {
+                    $libro->alquilerActivo = $alquiler;
+                }else{
+                  // Finished rentals are stored in another array to
+                  // separate them from the current rental
+                  array_push($alquileresTerminados, $alquiler);
+                }
             }
         }
         // Add the rental object to the book object in the array
-        $libro->alquileres = $alquileres;
+        $libro->alquileres = $alquileresTerminados;
 
 
         $db = null;
