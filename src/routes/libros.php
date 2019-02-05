@@ -128,6 +128,11 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
         $stmt = $db->query($sql);
         $alquileres = $stmt->fetchAll(PDO::FETCH_OBJ);
 
+        // Find the book's reviews
+        $sql = "SELECT * FROM reviews WHERE id_libro = $idLibro";
+        $stmt = $db->query($sql);
+        $reviews = $stmt->fetchAll(PDO::FETCH_OBJ);
+
         // Find the book owner, get the id and find it in the users table
         $idUsuario = $libro->usr_dueno;
         $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
@@ -152,15 +157,33 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
                 // This makes the UI much easier
                 if ($alquiler->activo) {
                     $libro->alquilerActivo = $alquiler;
-                }else{
-                  // Finished rentals are stored in another array to
-                  // separate them from the current rental
-                  array_push($alquileresTerminados, $alquiler);
+                } else {
+                    // Finished rentals are stored in another array to
+                    // separate them from the current rental
+                    array_push($alquileresTerminados, $alquiler);
                 }
             }
         }
         // Add the rental object to the book object in the array
         $libro->alquileres = $alquileresTerminados;
+
+        // If the book has reviews, find the name of the user that wrote it
+        if (count($reviews)>0) {
+            // Goes through all the reviews
+            foreach ($reviews as $review) {
+                $idUsuario = $review->id_usuario;
+                $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+                $stmt = $db->query($sql);
+                $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
+                // Stores the user name inside the review objetct
+                $review->nombre = $usuarios[0]->nombre;
+                // If the current rental is still active, separate it
+                // This makes the UI much easier
+            }
+        }
+        // Add the reviews object to the book object
+        $libro->reviews = $reviews;
+
 
 
         $db = null;
