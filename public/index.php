@@ -19,6 +19,7 @@ $app->get('/hello/{name}', function (Request $request, Response $response, array
 require '../src/routes/libros.php';
 require '../src/routes/reviews.php';
 require '../src/routes/usuarios.php';
+require '../src/routes/empresas.php';
 require '../src/routes/alquileres.php';
 require '../src/routes/mail.php';
 require '../src/routes/oauth.php';
