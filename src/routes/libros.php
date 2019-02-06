@@ -241,7 +241,7 @@ $app->post('/api/libros', function (Request $request, Response $response) {
 
                     $newResponse = $response->withStatus(200);
                     $body = $response->getBody();
-                    $body->write('{"status": "success","message": "Libro agregado", "libro": "'.$libro.'"}');
+                    $body->write('{"status": "success","message": "Libro agregado", "libro": "'.$titulo.'"}');
                     $newResponse = $newResponse->withBody($body);
                     return $newResponse;
                 } catch (PDOException $e) {
