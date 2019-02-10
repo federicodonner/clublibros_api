@@ -51,7 +51,7 @@ $app->get('/api/usuarios/{id}', function (Request $request, Response $response) 
         // Isolate the user id for following queries
         $idUsuario = $usuario->id;
         // Get the books the user brought
-        $sql = "SELECT * FROM libros WHERE usr_dueno = $idUsuario";
+        $sql = "SELECT * FROM libros WHERE usr_dueno = $idUsuario and activo = '1'";
         $stmt = $db->query($sql);
         $libros = $stmt->fetchAll(PDO::FETCH_OBJ);
         $usuario->libros = $libros;
