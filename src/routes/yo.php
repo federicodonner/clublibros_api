@@ -48,7 +48,8 @@ $app->get('/api/yo', function (Request $request, Response $response) {
                         $stmt = $db->query($sql);
                         $libros = $stmt->fetchAll(PDO::FETCH_OBJ);
                         // Add it to the object
-                        $alquiler->nombreLibro = $libros[0]->titulo;
+                        $alquiler->nombre_libro = $libros[0]->titulo;
+                        $alquiler->autor_libro = $libros[0]->autor;
 
                         // If the rental is an active one, separate it
                         // This makes the UI simpler
