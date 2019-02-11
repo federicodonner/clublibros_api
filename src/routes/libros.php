@@ -44,8 +44,8 @@ $app->get('/api/libros', function (Request $request, Response $response) {
                     foreach ($libros as $libro) {
 
                         // Find the book owner, get the id and find it in the users table
-                        $idUsuario = $libro->usr_dueno;
-                        $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+                        $usr_dueno = $libro->usr_dueno;
+                        $sql = "SELECT * FROM usuarios WHERE id = $usr_dueno";
                         $stmt = $db->query($sql);
                         $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
                         // Store the owner's name in the book object
@@ -61,8 +61,8 @@ $app->get('/api/libros', function (Request $request, Response $response) {
                         if (count($alquileres)>0) {
                             // Goes through all the rentals to keep it general, each book should only have one active rental at a time
                             foreach ($alquileres as $alquiler) {
-                                $idUsuario = $alquiler->id_usuario;
-                                $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+                                $usr_alquiler = $alquiler->id_usuario;
+                                $sql = "SELECT * FROM usuarios WHERE id = $usr_alquiler";
                                 $stmt = $db->query($sql);
                                 $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
                                 // Stores the user name inside the rental objetct
@@ -77,7 +77,11 @@ $app->get('/api/libros', function (Request $request, Response $response) {
 
                           // If the user only wants the available books, only   push the
                             // books with no outstanding rentals
-                            if (($disponibles == 'true' && !count($alquileres))|| $disponibles != 'true') {
+                            // and from other owners
+                            if (
+                              ($disponibles == 'true' && !count($alquileres) && $usr_dueno != $idUsuario) ||
+                              $disponibles != 'true'
+                          ) {
                                 // If everything fits, push it into a new array that is then returned
                                 array_push($librosResponse, $libro);
                             }
