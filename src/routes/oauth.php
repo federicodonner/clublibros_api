@@ -63,7 +63,7 @@ $app->post('/api/oauth', function(Request $request, Response $response){
         // ->withHeader('Access-Control-Allow-Origin', '*')
         // ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
         // ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-        echo('{"status":"201", "token":"'.$access_token.'","grant_type":"'.$grant_type.'"}');
+        echo('{"status":"201", "token":"'.$access_token.'","grant_type":"'.$grant_type.'","id":"'.$user_id.'"}');
       }
 
     }catch(PDOException $e){
