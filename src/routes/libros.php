@@ -214,6 +214,16 @@ $idUsuarioLogueado = $user_found[0]->user_id;
         $libro->reviews = $reviews;
         $libro->reviewDelUsuario = $reviewDelUsuario;
 
+// Verify if the user has an active rental
+// This is used in the UI in the rental confirmation page
+$sql = "SELECT * FROM alquileres WHERE id_usuario = $idUsuarioLogueado and activo = 1";
+$stmt = $db->query($sql);
+$alquileresUsuarioLogueado = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+  if (count($alquileresUsuarioLogueado)>0) {
+$libro->usuarioTieneAlquiler = true;
+  }
+
         $db = null;
 
         //echo json_encode($libro);

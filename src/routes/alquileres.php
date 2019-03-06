@@ -64,13 +64,12 @@ $app->post('/api/alquileres', function(Request $request, Response $response){
       $user_found = verifyToken($access_token);
       if(!empty($user_found)){
 
-        $fecha_salida = $request->getParam('fecha_salida');
-        $fecha_devolucion = $request->getParam('fecha_devolucion');
+        $fecha_salida = time();
         $id_libro = $request->getParam('id_libro');
         $id_usuario = $request->getParam('id_usuario');
-        $activo = $request->getParam('activo');
+        $activo = 1;
 
-        $sql = "INSERT INTO alquileres(fecha_salida,fecha_devolucion,id_libro,id_usuario,activo) VALUES (:fecha_salida,:fecha_devolucion,:id_libro,:id_usuario,:activo)";
+        $sql = "INSERT INTO alquileres(fecha_salida,id_libro,id_usuario,activo) VALUES (:fecha_salida,:id_libro,:id_usuario,:activo)";
 
         try{
           // Get db object
@@ -81,7 +80,6 @@ $app->post('/api/alquileres', function(Request $request, Response $response){
           $stmt = $db->prepare($sql);
 
           $stmt->bindParam(':fecha_salida', $fecha_salida);
-          $stmt->bindParam(':fecha_devolucion', $fecha_devolucion);
           $stmt->bindParam(':id_libro', $id_libro);
           $stmt->bindParam(':id_usuario', $id_usuario);
           $stmt->bindParam(':activo', $activo);
@@ -123,14 +121,15 @@ $app->post('/api/alquileres', function(Request $request, Response $response){
         $user_found = verifyToken($access_token);
         if(!empty($user_found)){
 
-          $id = $request->getAttribute('id');
+          $id_libro = $request->getAttribute('id');
 
-          $fecha_devolucion = $request->getParam('fecha_devolucion');
+          $fecha_devolucion = time();
+          $activo = 0;
 
 
           $sql = "UPDATE alquileres SET
-          fecha_devolucion = :fecha_devolucion
-          WHERE id = $id";
+          fecha_devolucion = :fecha_devolucion, activo = :activo
+          WHERE id_libro = $id_libro and activo = 1";
 
           try{
             // Get db object
@@ -141,10 +140,15 @@ $app->post('/api/alquileres', function(Request $request, Response $response){
             $stmt = $db->prepare($sql);
 
             $stmt->bindParam(':fecha_devolucion', $fecha_devolucion);
+            $stmt->bindParam(':activo', $activo);
 
             $stmt->execute();
 
-            echo('{"notice":{"text":"alquiler actualizado"'.$fecha_devolucion.'}}');
+            $newResponse = $response->withStatus(200);
+            $body = $response->getBody();
+            $body->write('{"status": "success","message": "Alquiler finalizado"}');
+              $newResponse = $newResponse->withBody($body);
+              return $newResponse;
 
           }catch(PDOException $e){
             echo '{"error":{"text": '.$e->getMessage().'}}';
