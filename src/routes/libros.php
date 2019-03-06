@@ -113,6 +113,21 @@ $app->get('/api/libros', function (Request $request, Response $response) {
 
 // Get single book
 $app->get('/api/libros/{id}', function (Request $request, Response $response) {
+
+  // Verify the access token to validate the user selection
+  if ($request->getHeaders()['HTTP_AUTHORIZATION']) {
+      $access_token = $request->getHeaders()['HTTP_AUTHORIZATION'][0];
+      $access_token = explode(" ", $access_token)[1];
+      // Find the access token, if a user is returned, post the products
+      if (!empty($access_token)) {
+          $user_found = verifyToken($access_token);
+          if (!empty($user_found)) {
+              // The access token is necesary to identify the company of the active user and
+              // only return the books from that company
+
+
+$idUsuarioLogueado = $user_found[0]->user_id;
+
     $id = $request->getAttribute('id');
     $sql = "SELECT * FROM libros WHERE id = $id";
 
@@ -151,8 +166,8 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
         if (count($alquileres)>0) {
             // Goes through all the rentals to keep it general, each book should only have one active rental at a time
             foreach ($alquileres as $alquiler) {
-                $idUsuario = $alquiler->id_usuario;
-                $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+                $idUsuarioAlquiler = $alquiler->id_usuario;
+                $sql = "SELECT * FROM usuarios WHERE id = $idUsuarioAlquiler";
                 $stmt = $db->query($sql);
                 $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
                 // Stores the user name inside the rental objetct
@@ -171,12 +186,22 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
         // Add the rental object to the book object in the array
         $libro->alquileres = $alquileresTerminados;
 
+        // Variable that indicates if the user has entered a review for this book
+        $reviewDelUsuario = false;
+
         // If the book has reviews, find the name of the user that wrote it
         if (count($reviews)>0) {
             // Goes through all the reviews
             foreach ($reviews as $review) {
-                $idUsuario = $review->id_usuario;
-                $sql = "SELECT * FROM usuarios WHERE id = $idUsuario";
+
+                $idUsuarioReview = $review->id_usuario;
+
+                // Set the variable if the review author is the active user
+                if($idUsuarioReview == $idUsuarioLogueado){
+                  $reviewDelUsuario = true;
+                }
+
+                $sql = "SELECT * FROM usuarios WHERE id = $idUsuarioReview";
                 $stmt = $db->query($sql);
                 $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
                 // Stores the user name inside the review objetct
@@ -187,8 +212,7 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
         }
         // Add the reviews object to the book object
         $libro->reviews = $reviews;
-
-
+        $libro->reviewDelUsuario = $reviewDelUsuario;
 
         $db = null;
 
@@ -200,6 +224,15 @@ $app->get('/api/libros/{id}', function (Request $request, Response $response) {
     } catch (PDOException $e) {
         echo '{"error":{"text": '.$e->getMessage().'}}';
     }
+  } else {
+      return loginError($response, 'Error de login, usuario no encontrado');
+  }
+} else {
+  return loginError($response, 'Error de login, falta access token');
+}
+} else {
+return loginError($response, 'Error de encabezado HTTP');
+}
 });
 
 
