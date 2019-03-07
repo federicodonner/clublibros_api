@@ -317,16 +317,44 @@ $app->put('/api/libros/{id}', function (Request $request, Response $response) {
             if (!empty($user_found)) {
                 $id = $request->getAttribute('id');
 
-                $titulo = $request->getParam('titulo');
-                $autor = $request->getParam('autor');
-                $ano = $request->getParam('ano');
-                $resumen = $request->getParam('resumen');
-                $idioma = $request->getParam('idioma');
-                $usr_dueno = $request->getParam('usr_dueno');
-                $activo = $request->getParam('activo');
-                //$tapa = $request->getParam('tapa');
+                // Get the queryparam to verify if its an enable/disable operation
+                $operation = $request->getQueryParam('operation');
 
-                $sql = "UPDATE libros SET
+                if ($operation) {
+                    if ($operation == 'enable') {
+                        $activo = 1;
+                    } else {
+                        $activo = 0;
+                    }
+
+                    $sql = "UPDATE libros SET activo = :activo WHERE id = $id";
+
+                    // Get db object
+                    $db = new db();
+                    // Connect
+                    $db = $db->connect();
+
+                    $stmt = $db->prepare($sql);
+
+                    $stmt->bindParam(':activo', $activo);
+
+                    $stmt->execute();
+
+                    $newResponse = $response->withStatus(200);
+                    $body = $response->getBody();
+                    $body->write('{"status": "success","message": "Libro actualizado"}');
+                    $newResponse = $newResponse->withBody($body);
+                } else {
+                    $titulo = $request->getParam('titulo');
+                    $autor = $request->getParam('autor');
+                    $ano = $request->getParam('ano');
+                    $resumen = $request->getParam('resumen');
+                    $idioma = $request->getParam('idioma');
+                    $usr_dueno = $request->getParam('usr_dueno');
+                    $activo = $request->getParam('activo');
+                    //$tapa = $request->getParam('tapa');
+
+                    $sql = "UPDATE libros SET
         titulo = :titulo,
         autor = :autor,
         ano = :ano,
@@ -336,27 +364,31 @@ $app->put('/api/libros/{id}', function (Request $request, Response $response) {
         activo = :activo
         WHERE id = $id";
 
-                try {
-                    // Get db object
-                    $db = new db();
-                    // Connect
-                    $db = $db->connect();
+                    try {
+                        // Get db object
+                        $db = new db();
+                        // Connect
+                        $db = $db->connect();
 
-                    $stmt = $db->prepare($sql);
+                        $stmt = $db->prepare($sql);
 
-                    $stmt->bindParam(':titulo', $titulo);
-                    $stmt->bindParam(':autor', $autor);
-                    $stmt->bindParam(':ano', $ano);
-                    $stmt->bindParam(':resumen', $resumen);
-                    $stmt->bindParam(':idioma', $idioma);
-                    $stmt->bindParam(':usr_dueno', $usr_dueno);
-                    $stmt->bindParam(':activo', $activo);
+                        $stmt->bindParam(':titulo', $titulo);
+                        $stmt->bindParam(':autor', $autor);
+                        $stmt->bindParam(':ano', $ano);
+                        $stmt->bindParam(':resumen', $resumen);
+                        $stmt->bindParam(':idioma', $idioma);
+                        $stmt->bindParam(':usr_dueno', $usr_dueno);
+                        $stmt->bindParam(':activo', $activo);
 
-                    $stmt->execute();
+                        $stmt->execute();
 
-                    echo('{"notice":{"text":"libro actualizado"}}');
-                } catch (PDOException $e) {
-                    echo '{"error":{"text": '.$e->getMessage().'}}';
+                        $newResponse = $response->withStatus(200);
+                        $body = $response->getBody();
+                        $body->write('{"status": "success","message": "Libro actualizado"}');
+                        $newResponse = $newResponse->withBody($body);
+                    } catch (PDOException $e) {
+                        echo '{"error":{"text": '.$e->getMessage().'}}';
+                    }
                 }
             } else {
                 return loginError($response, 'Error de login, usuario no encontrado');
