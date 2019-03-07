@@ -32,6 +32,27 @@ $app->get('/api/yo', function (Request $request, Response $response) {
                     $sql = "SELECT * FROM libros WHERE usr_dueno = $idUsuario";
                     $stmt = $db->query($sql);
                     $libros = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+                    foreach ($libros as $libro) {
+                        $id_libro = $libro->id;
+                        $sql = "SELECT * FROM alquileres WHERE id_libro = $id_libro and activo = 1";
+                        $stmt = $db->query($sql);
+                        $alquileres = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+                        if (!empty($alquileres)) {
+                            $id_usuario = $alquileres[0]->id_usuario;
+
+                            $sql = "SELECT * FROM usuarios WHERE id = $id_usuario";
+                            $stmt = $db->query($sql);
+                            $usuarios = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+                            $alquileres[0]->detallesUsuario = $usuarios[0];
+                        }
+
+                        $libro->alquilerActivo = $alquileres[0];
+                    }
+
+
                     $usuario->libros = $libros;
 
                     // Get the rentals the user had in the past
