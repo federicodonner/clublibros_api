@@ -78,8 +78,9 @@ $app->get('/api/libros', function (Request $request, Response $response) {
                           // If the user only wants the available books, only   push the
                             // books with no outstanding rentals
                             // and from other owners
+                            $activo = $libro->activo;
                             if (
-                              ($disponibles == 'true' && !count($alquileres) && $usr_dueno != $idUsuario) ||
+                              ($disponibles == 'true' && !count($alquileres) && $usr_dueno != $idUsuario && $activo == '1') ||
                               $disponibles != 'true'
                           ) {
                                 // If everything fits, push it into a new array that is then returned
